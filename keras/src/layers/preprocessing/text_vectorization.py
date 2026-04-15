@@ -539,7 +539,11 @@ class TextVectorization(Layer):
                     inputs, r'[!"#$%&()\*\+,-\./:;<=>?@\[\\\]^_`{|}~\']', ""
                 )
             if callable(self._standardize):
+                if backend.backend() != "tensorflow":
+                    inputs = backend.convert_to_numpy(inputs)
                 inputs = self._standardize(inputs)
+                if backend.backend() != "tensorflow":
+                    inputs = tf_utils.ensure_tensor(inputs, dtype=tf.string)
 
             if self._split is not None:
                 # If we are splitting, we validate that the 1st axis is of
@@ -564,7 +568,11 @@ class TextVectorization(Layer):
                 elif self._split == "character":
                     inputs = tf.strings.unicode_split(inputs, "UTF-8")
                 elif callable(self._split):
+                    if backend.backend() != "tensorflow":
+                        inputs = backend.convert_to_numpy(inputs)
                     inputs = self._split(inputs)
+                    if backend.backend() != "tensorflow":
+                        inputs = tf_utils.ensure_tensor(inputs, dtype=tf.string)
 
             # Note that 'inputs' here can be either ragged or dense depending
             # on the configuration choices for this Layer. The strings.ngrams
