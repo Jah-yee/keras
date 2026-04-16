@@ -1867,7 +1867,7 @@ class Blackman(Operation):
         # The output is a 1D tensor of shape (window_length,).
         # If x is a 1D tensor representing window lengths, preserve its shape.
         # If x is a scalar (0D), use x itself as the window length dimension.
-        if len(x.shape) > 0:
+        if x.ndim > 0:
             output_shape = x.shape
         else:
             output_shape = (x,)
