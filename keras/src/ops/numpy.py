@@ -1864,7 +1864,9 @@ class Blackman(Operation):
         return backend.numpy.blackman(x)
 
     def compute_output_spec(self, x):
-        return KerasTensor(x.shape, dtype=backend.floatx())
+        # x is a scalar (or 0D/1D tensor) representing window length M,
+        # output shape should be (M,) since Blackman produces a 1D window
+        return KerasTensor((x,), dtype=backend.floatx())
 
 
 @keras_export(["keras.ops.blackman", "keras.ops.numpy.blackman"])
