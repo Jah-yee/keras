@@ -661,6 +661,45 @@ class EmbeddingTest(test_case.TestCase):
         self.assertEqual(quantizer.axis, (-1,))
         self.assertAllEqual(quantizer.value_range, weight_range)
 
+    def test_from_config_input_dim_validation(self):
+        # Test that float input_dim is rejected
+        with self.assertRaisesRegex(
+            ValueError, "`input_dim` must be an integer"
+        ):
+            layers.Embedding.from_config(
+                {"input_dim": 3.7, "output_dim": 8}
+            )
+
+        # Test that string input_dim is rejected
+        with self.assertRaisesRegex(
+            ValueError, "`input_dim` must be an integer"
+        ):
+            layers.Embedding.from_config(
+                {"input_dim": "1000", "output_dim": 8}
+            )
+
+        # Test that bool input_dim is rejected
+        with self.assertRaisesRegex(
+            ValueError, "`input_dim` must be an integer"
+        ):
+            layers.Embedding.from_config(
+                {"input_dim": True, "output_dim": 8}
+            )
+
+        # Test that negative input_dim is rejected
+        with self.assertRaisesRegex(
+            ValueError, "`input_dim` must be nonnegative"
+        ):
+            layers.Embedding.from_config(
+                {"input_dim": -1, "output_dim": 8}
+            )
+
+        # Test that valid integer input_dim works
+        layer = layers.Embedding.from_config(
+            {"input_dim": 1000, "output_dim": 64}
+        )
+        self.assertEqual(layer.input_dim, 1000)
+
     @parameterized.named_parameters(
         ("grouped_block_64", 64),
         ("grouped_block_128", 128),
