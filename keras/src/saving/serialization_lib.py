@@ -609,7 +609,23 @@ def deserialize_keras_object(
     if not isinstance(config, dict):
         raise TypeError(f"Could not parse config: {config}")
 
-    if "class_name" not in config or "config" not in config:
+    if "class_name" not in config:
+        # If class_name is missing but module or config is present,
+        # this is a malformed Keras object config (e.g., issue #22704).
+        # module + config without class_name indicates an incomplete config.
+        if "module" in config or "config" in config:
+            raise ValueError(
+                f"Invalid config format: missing 'class_name'. "
+                f"Received: {config}"
+            )
+        # Otherwise, recursively deserialize values in the dict
+        return {
+            key: deserialize_keras_object(
+                value, custom_objects=custom_objects, safe_mode=safe_mode
+            )
+            for key, value in config.items()
+        }
+    if "config" not in config:
         return {
             key: deserialize_keras_object(
                 value, custom_objects=custom_objects, safe_mode=safe_mode
