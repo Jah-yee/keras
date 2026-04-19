@@ -633,6 +633,18 @@ def deserialize_keras_object(
     inner_config = inner_config or {}
     custom_objects = custom_objects or {}
 
+    # Validate trainable field if present in inner_config.
+    # trainable should always be a bool for Keras layers.
+    if inner_config and "trainable" in inner_config:
+        trainable_value = inner_config["trainable"]
+        if not isinstance(trainable_value, bool):
+            raise TypeError(
+                f"Expected `trainable` to be a bool, "
+                f"but received {type(trainable_value).__name__}: "
+                f"{trainable_value!r}. When deserializing class "
+                f"'{class_name}'."
+            )
+
     # Special cases:
     if class_name == "__keras_tensor__":
         obj = backend.KerasTensor(

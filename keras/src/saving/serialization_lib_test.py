@@ -476,3 +476,46 @@ class MyWrapper(keras.layers.Layer):
 
     def call(self, inputs):
         return self._wrapped(inputs)
+
+    def test_deserialize_trainable_invalid_type(self):
+        """Test that deserialize_keras_object rejects non-bool trainable."""
+        # String trainable value should raise TypeError
+        config = {
+            "class_name": "Dense",
+            "module": "keras.layers",
+            "config": {"units": 32, "trainable": "yes"},
+        }
+        with self.assertRaises(TypeError) as e:
+            serialization_lib.deserialize_keras_object(config)
+        self.assertIn("trainable", str(e.exception).lower())
+        self.assertIn("str", str(e.exception))
+
+        # Integer trainable value should raise TypeError
+        config_int = {
+            "class_name": "Dense",
+            "module": "keras.layers",
+            "config": {"units": 32, "trainable": 1},
+        }
+        with self.assertRaises(TypeError) as e:
+            serialization_lib.deserialize_keras_object(config_int)
+        self.assertIn("trainable", str(e.exception).lower())
+
+        # None trainable value should raise TypeError
+        config_none = {
+            "class_name": "Dense",
+            "module": "keras.layers",
+            "config": {"units": 32, "trainable": None},
+        }
+        with self.assertRaises(TypeError) as e:
+            serialization_lib.deserialize_keras_object(config_none)
+        self.assertIn("trainable", str(e.exception).lower())
+
+        # Valid bool trainable values should work fine
+        for trainable_val in (True, False):
+            config_valid = {
+                "class_name": "Dense",
+                "module": "keras.layers",
+                "config": {"units": 32, "trainable": trainable_val},
+            }
+            layer = serialization_lib.deserialize_keras_object(config_valid)
+            self.assertEqual(layer.trainable, trainable_val)
