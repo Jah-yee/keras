@@ -297,6 +297,12 @@ class Layer(BackendLayer, Operation):
                 f"passed to {self.__class__.__name__}: {kwargs}"
             )
 
+        if not isinstance(trainable, bool):
+            raise TypeError(
+                f"Expected `trainable` to be a bool, but got "
+                f"{type(trainable).__name__}: {trainable!r}"
+            )
+
         self._path = None  # Will be determined in `build_wrapper`
         self.built = False
         self.autocast = autocast
