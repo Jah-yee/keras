@@ -618,7 +618,14 @@ def deserialize_keras_object(
         }
 
     class_name = config["class_name"]
-    inner_config = config["config"] or {}
+    inner_config = config["config"]
+    if not isinstance(inner_config, dict):
+        raise TypeError(
+            f"Expected 'config' to be a dict, got {type(inner_config).__name__}. "
+            f"For class '{class_name}', pass a dict with the expected "
+            "configuration keys."
+        )
+    inner_config = inner_config or {}
     custom_objects = custom_objects or {}
 
     # Special cases:
