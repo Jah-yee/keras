@@ -476,3 +476,83 @@ class MyWrapper(keras.layers.Layer):
 
     def call(self, inputs):
         return self._wrapped(inputs)
+
+
+# Test for trainable field validation (issue #22699)
+def test_trainable_type_validation():
+    """Test that non-boolean trainable values raise TypeError."""
+    import os
+    os.environ["KERAS_BACKEND"] = "tensorflow"
+    import keras
+    from keras.saving import deserialize_keras_object
+
+    # Test with string value
+    config = {
+        "class_name": "Dense",
+        "module": "keras.layers",
+        "config": {
+            "units": 32,
+            "trainable": "yes"
+        }
+    }
+    try:
+        deserialize_keras_object(config)
+        raise AssertionError("Expected TypeError for trainable='yes'")
+    except TypeError as e:
+        assert "trainable" in str(e).lower()
+        assert "bool" in str(e).lower()
+        print(f"Test 1 passed: trainable='yes' raised TypeError: {e}")
+
+
+    # Test with int value
+    config = {
+        "class_name": "Dense",
+        "module": "keras.layers",
+        "config": {
+            "units": 32,
+            "trainable": 1
+        }
+    }
+    try:
+        deserialize_keras_object(config)
+        raise AssertionError("Expected TypeError for trainable=1")
+    except TypeError as e:
+        assert "trainable" in str(e).lower()
+        print(f"Test 2 passed: trainable=1 raised TypeError: {e}")
+
+    # Test with None value
+    config = {
+        "class_name": "Dense",
+        "module": "keras.layers",
+        "config": {
+            "units": 32,
+            "trainable": None
+        }
+    }
+    try:
+        deserialize_keras_object(config)
+        raise AssertionError("Expected TypeError for trainable=None")
+    except TypeError as e:
+        assert "trainable" in str(e).lower()
+        print(f"Test 3 passed: trainable=None raised TypeError: {e}")
+
+
+    # Test valid boolean trainable still works
+    config = {
+        "class_name": "Dense",
+        "module": "keras.layers",
+        "config": {
+            "units": 32,
+            "trainable": False
+        }
+    }
+    layer = deserialize_keras_object(config)
+    assert layer.trainable == False
+    print("Test 4 passed: trainable=False works correctly")
+
+
+    print("\nAll trainable validation tests passed!")
+
+
+if __name__ == "__main__":
+    test_trainable_type_validation()
