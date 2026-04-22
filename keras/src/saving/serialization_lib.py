@@ -610,12 +610,10 @@ def deserialize_keras_object(
         raise TypeError(f"Could not parse config: {config}")
 
     if "class_name" not in config or "config" not in config:
-        return {
-            key: deserialize_keras_object(
-                value, custom_objects=custom_objects, safe_mode=safe_mode
-            )
-            for key, value in config.items()
-        }
+        raise ValueError(
+            f"Invalid config format: missing required field(s) "
+            f"'class_name' and/or 'config'. Got config={config}"
+        )
 
     class_name = config["class_name"]
     inner_config = config["config"]
