@@ -1346,6 +1346,8 @@ class Bartlett(Operation):
         return backend.numpy.bartlett(x)
 
     def compute_output_spec(self, x):
+        if x.shape == ():
+            return KerasTensor((None,), dtype=backend.floatx())
         return KerasTensor(x.shape, dtype=backend.floatx())
 
 
@@ -1375,6 +1377,8 @@ class Hamming(Operation):
         return backend.numpy.hamming(x)
 
     def compute_output_spec(self, x):
+        if x.shape == ():
+            return KerasTensor((None,), dtype=backend.floatx())
         return KerasTensor(x.shape, dtype=backend.floatx())
 
 
@@ -1406,6 +1410,8 @@ class Hanning(Operation):
         return backend.numpy.hanning(x)
 
     def compute_output_spec(self, x):
+        if x.shape == ():
+            return KerasTensor((None,), dtype=backend.floatx())
         return KerasTensor(x.shape, dtype=backend.floatx())
 
 
@@ -1479,6 +1485,8 @@ class Kaiser(Operation):
         return backend.numpy.kaiser(x, self.beta)
 
     def compute_output_spec(self, x):
+        if x.shape == ():
+            return KerasTensor((None,), dtype=backend.floatx())
         return KerasTensor(x.shape, dtype=backend.floatx())
 
 
@@ -1864,9 +1872,9 @@ class Blackman(Operation):
         return backend.numpy.blackman(x)
 
     def compute_output_spec(self, x):
-        # x is a scalar (or 0D/1D tensor) representing window length M,
-        # output shape should be (M,) since Blackman produces a 1D window
-        return KerasTensor((x,), dtype=backend.floatx())
+        if x.shape == ():
+            return KerasTensor((None,), dtype=backend.floatx())
+        return KerasTensor(x.shape, dtype=backend.floatx())
 
 
 @keras_export(["keras.ops.blackman", "keras.ops.numpy.blackman"])
