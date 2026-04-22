@@ -609,7 +609,12 @@ def deserialize_keras_object(
     if not isinstance(config, dict):
         raise TypeError(f"Could not parse config: {config}")
 
-    if "class_name" not in config or "config" not in config:
+    if "class_name" not in config:
+        raise ValueError(
+            f"Missing `class_name` in the config. Received: {config}"
+        )
+
+    if "config" not in config:
         return {
             key: deserialize_keras_object(
                 value, custom_objects=custom_objects, safe_mode=safe_mode
