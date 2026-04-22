@@ -744,6 +744,16 @@ def deserialize_keras_object(
                 " model's `from_config()` method."
                 f"\n\nconfig={config}.\n\nException encountered: {e}"
             )
+
+        # Validate trainable field is a boolean
+        if hasattr(instance, "_trainable") and not isinstance(
+            instance._trainable, bool
+        ):
+            raise TypeError(
+                f"Expected `trainable` to be a bool, but got "
+                f"{type(instance._trainable).__name__}: {instance._trainable}"
+            )
+
         build_config = config.get("build_config", None)
         if build_config and not instance.built:
             instance.build_from_config(build_config)
