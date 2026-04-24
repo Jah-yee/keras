@@ -535,12 +535,24 @@ def deserialize_keras_object(
         return custom_objects[config]
 
     if isinstance(config, (list, tuple)):
-        return [
-            deserialize_keras_object(
-                x, custom_objects=custom_objects, safe_mode=safe_mode
+        result = []
+        for i, x in enumerate(config):
+            if isinstance(x, dict) and (
+                ("class_name" not in x and "config" not in x)
+                or x.get("class_name") is None
+            ):
+                raise ValueError(
+                    f"Invalid layer config at index {i}: expected a dict "
+                    f"with 'class_name' key, got {x!r}. "
+                    f"Ensure all layers in the list are valid Keras "
+                    f"layer configurations."
+                )
+            result.append(
+                deserialize_keras_object(
+                    x, custom_objects=custom_objects, safe_mode=safe_mode
+                )
             )
-            for x in config
-        ]
+        return tuple(config) if isinstance(config, tuple) else result
 
     if module_objects is not None:
         inner_config, fn_module_name, has_custom_object = None, None, False
