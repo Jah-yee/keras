@@ -535,23 +535,12 @@ def deserialize_keras_object(
         return custom_objects[config]
 
     if isinstance(config, (list, tuple)):
-        result = []
-        for i, x in enumerate(config):
-            if isinstance(x, dict) and (
-                ("class_name" not in x and "config" not in x)
-                or x.get("class_name") is None
-            ):
-                raise ValueError(
-                    f"Invalid layer config at index {i}: expected a dict "
-                    f"with 'class_name' key, got {x!r}. "
-                    f"Ensure all layers in the list are valid Keras "
-                    f"layer configurations."
-                )
-            result.append(
-                deserialize_keras_object(
-                    x, custom_objects=custom_objects, safe_mode=safe_mode
-                )
+        result = [
+            deserialize_keras_object(
+                x, custom_objects=custom_objects, safe_mode=safe_mode
             )
+            for x in config
+        ]
         return tuple(result) if isinstance(config, tuple) else result
 
     if module_objects is not None:
@@ -622,10 +611,12 @@ def deserialize_keras_object(
         raise TypeError(f"Could not parse config: {config}")
 
     if "class_name" not in config or "config" not in config:
-        raise ValueError(
-            f"Invalid config format: missing required field(s) "
-            f"'class_name' and/or 'config'. Got config={config}"
-        )
+        return {
+            key: deserialize_keras_object(
+                value, custom_objects=custom_objects, safe_mode=safe_mode
+            )
+            for key, value in config.items()
+        }
 
     class_name = config["class_name"]
     inner_config = config["config"]
