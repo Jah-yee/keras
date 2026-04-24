@@ -369,6 +369,31 @@ class Embedding(Layer):
     @classmethod
     def from_config(cls, config):
         config = config.copy()
+        # Validate input_dim and output_dim are integers
+        if "input_dim" in config:
+            input_dim = config["input_dim"]
+            if (
+                not isinstance(input_dim, int)
+                or isinstance(input_dim, bool)
+                or input_dim <= 0
+            ):
+                raise ValueError(
+                    f"`input_dim` must be a positive integer. "
+                    f"Received: input_dim={input_dim} "
+                    f"(of type {type(input_dim).__name__})"
+                )
+        if "output_dim" in config:
+            output_dim = config["output_dim"]
+            if (
+                not isinstance(output_dim, int)
+                or isinstance(output_dim, bool)
+                or output_dim <= 0
+            ):
+                raise ValueError(
+                    f"`output_dim` must be a positive integer. "
+                    f"Received: output_dim={output_dim} "
+                    f"(of type {type(output_dim).__name__})"
+                )
         config["quantization_config"] = (
             serialization_lib.deserialize_keras_object(
                 config.get("quantization_config", None)
