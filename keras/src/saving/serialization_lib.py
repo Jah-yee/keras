@@ -616,12 +616,22 @@ def deserialize_keras_object(
                 f"'config' keys, but got an empty dict. "
                 f"Received: {config}"
             )
-        return {
-            key: deserialize_keras_object(
-                value, custom_objects=custom_objects, safe_mode=safe_mode
-            )
-            for key, value in config.items()
-        }
+        # If config lacks class_name but is non-empty, it may be a malformed
+        # Keras object config. Raise a clear error.
+        raise TypeError(
+            f"Invalid config: missing 'class_name'. "
+            f"Expected a Keras object config dict with 'class_name' and "
+            f"'config' keys. Received: {config}"
+        )
+
+    # Validate that config["config"] is a dict (not a list or other type).
+    # This prevents confusing AttributeError messages like "'list' object
+    # has no attribute 'get'" when from_config is called with a list.
+    if not isinstance(config.get("config"), dict):
+        raise TypeError(
+            f"Invalid config: 'config' must be a dict. "
+            f"Received: config['config'] = {config.get('config')!r}"
+        )
 
     class_name = config["class_name"]
     inner_config = config["config"] or {}
