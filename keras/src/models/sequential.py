@@ -376,7 +376,7 @@ class Sequential(Model):
             layer_configs = config["layers"]
         else:
             if not isinstance(config, list):
-                raise TypeError(
+                raise ValueError(
                     f"`Sequential.from_config` expects a list of layer configs "
                     f"or a dict with 'name' and 'layers' keys. Received: "
                     f"type(config)={type(config).__name__}."
