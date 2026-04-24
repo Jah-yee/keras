@@ -18,6 +18,7 @@ from keras.src.backend.openvino.core import (
 from keras.src.backend.openvino.core import convert_to_tensor
 from keras.src.backend.openvino.core import get_ov_output
 from keras.src.backend.openvino.core import ov_to_keras_type
+from keras.src.backend.openvino.core import shape_to_ov_output
 from keras.src.backend.openvino.core import while_loop
 
 
@@ -1180,7 +1181,7 @@ def broadcast_to(x, shape):
             f"`broadcast_to` is supported only for tuple and list `shape`. "
             f"Received: shape={shape} (type {type(shape)})"
         )
-    target_shape = ov_opset.constant(list(shape), Type.i32).output(0)
+    target_shape = shape_to_ov_output(list(shape))
     x = get_ov_output(x)
     return OpenVINOKerasTensor(ov_opset.broadcast(x, target_shape).output(0))
 
@@ -3276,9 +3277,7 @@ def nanmean(x, axis=None, keepdims=False):
 
 
 def nanmedian(x, axis=None, keepdims=False):
-    raise NotImplementedError(
-        "`nanmedian` is not supported with openvino backend"
-    )
+    return nanquantile(x, 0.5, axis=axis, method="midpoint", keepdims=keepdims)
 
 
 def nanmin(x, axis=None, keepdims=False):
@@ -3314,6 +3313,12 @@ def nanmin(x, axis=None, keepdims=False):
     result = ov_opset.select(all_nan, nan_value, result).output(0)
 
     return OpenVINOKerasTensor(result)
+
+
+def nanpercentile(x, q, axis=None, method="linear", keepdims=False):
+    return nanquantile(
+        x, q / 100.0, axis=axis, method=method, keepdims=keepdims
+    )
 
 
 def nanprod(x, axis=None, keepdims=False):
@@ -3749,7 +3754,9 @@ def pad(x, pad_width, mode="constant", constant_values=None):
                 "provided when `mode == 'constant'`. "
                 f"Received: mode={mode}"
             )
-        if not isinstance(constant_values, int):
+        if not isinstance(
+            constant_values, (int, float, np.integer, np.floating)
+        ):
             raise ValueError(
                 "`pad` operation supports only scalar pad value "
                 "in constant mode with the openvino backend. "
@@ -3769,6 +3776,12 @@ def pad(x, pad_width, mode="constant", constant_values=None):
     pads_end = ov_opset.constant(pads_end, Type.i32).output(0)
     return OpenVINOKerasTensor(
         ov_opset.pad(x, pads_begin, pads_end, mode, pad_value).output(0)
+    )
+
+
+def percentile(x, q, axis=None, method="linear", keepdims=False):
+    return quantile(
+        x, divide(q, 100.0), axis=axis, method=method, keepdims=keepdims
     )
 
 
@@ -4906,8 +4919,8 @@ def transpose(x, axes=None):
             rank_minus_one, const_minus_one, const_minus_one, "i64"
         ).output(0)
     else:
-        if isinstance(axes, tuple):
-            axes = list(axes)
+        rank = x.get_partial_shape().rank.get_length()
+        axes = [canonicalize_axis(a, rank) for a in axes]
         axes = ov_opset.constant(axes, Type.i32).output(0)
     return OpenVINOKerasTensor(ov_opset.transpose(x, axes).output(0))
 

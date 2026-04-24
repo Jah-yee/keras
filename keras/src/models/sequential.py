@@ -380,6 +380,9 @@ class Sequential(Model):
                     f"`Sequential.from_config` expects a list of layer configs "
                     f"or a dict with 'name' and 'layers' keys. Received: "
                     f"type(config)={type(config).__name__}."
+                    "A Sequential model configuration must be either a list "
+                    "of layers or a dictionary containing the 'name' and "
+                    "'layers' keys. Received: config={config}"
                 )
             name = None
             layer_configs = config
