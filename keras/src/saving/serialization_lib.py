@@ -732,7 +732,7 @@ def deserialize_keras_object(
     if inner_config and isinstance(inner_config, dict) and "trainable" in inner_config:
         trainable_value = inner_config["trainable"]
         if not isinstance(trainable_value, bool):
-            raise TypeError(
+            raise ValueError(
                 f"Invalid type for 'trainable' field: expected bool, "
                 f"received {type(trainable_value).__name__}. "
                 f"Set 'trainable' to a boolean value."
