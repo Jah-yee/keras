@@ -552,7 +552,7 @@ def deserialize_keras_object(
                     x, custom_objects=custom_objects, safe_mode=safe_mode
                 )
             )
-        return tuple(config) if isinstance(config, tuple) else result
+        return tuple(result) if isinstance(config, tuple) else result
 
     if module_objects is not None:
         inner_config, fn_module_name, has_custom_object = None, None, False
