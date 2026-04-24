@@ -618,7 +618,19 @@ def deserialize_keras_object(
         }
 
     class_name = config["class_name"]
-    inner_config = config["config"] or {}
+    inner_config = config["config"]
+    # Validate that inner_config is a dict when class_name is a class
+    # (not "function"), since from_config() expects a dict.
+    if (
+        inner_config is not None
+        and not isinstance(inner_config, dict)
+        and class_name != "function"
+    ):
+        raise TypeError(
+            f"Expected `config` to be a dict, but got {type(inner_config).__name__}: "
+            f"{inner_config}"
+        )
+    inner_config = inner_config or {}
     custom_objects = custom_objects or {}
 
     # Special cases:
