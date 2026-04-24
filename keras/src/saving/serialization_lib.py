@@ -625,9 +625,9 @@ def deserialize_keras_object(
     if (
         inner_config is not None
         and not isinstance(inner_config, dict)
-        and class_name != "function"
+        and class_name not in ("function", "__typespec__")
     ):
-        raise TypeError(
+        raise ValueError(
             f"Expected `config` to be a dict, but got {type(inner_config).__name__}: "
             f"{inner_config}"
         )
